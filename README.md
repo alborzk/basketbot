@@ -8,7 +8,7 @@ Basketbot is a simple Discord bot that allows you to quickly access NBA standing
 To get started, simply [invite Basketbot](https://discord.com/api/oauth2/authorize?client_id=1042343121821904976&permissions=1634235578432&scope=bot) to your Discord Server!
 
 ## 🖥️ Commands
-- **!standings `division (east/west)`**: Shows the current standings for the selected NBA division.
+- **!standings `(east/west)`**: Shows the current standings for the selected NBA division.
 - **!schedule**: Shows today's current game schedule.
 - **!trivia**: Shows a random fun fact about the NBA and its players!
 - **!help**: Shows a list of the commands you can use.
