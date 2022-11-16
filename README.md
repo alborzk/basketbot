@@ -12,10 +12,10 @@ To get started, simply [invite Basketbot](https://discord.com/api/oauth2/authori
 - **!schedule**: Shows today's current game schedule.
 - **!trivia**: Shows a random fun fact about the NBA and its players!
 - **!help**: Shows a list of the commands you can use.
-- *You can also use ? as a prefix instead of ! to receive responses from Basketbot in private instead of in your current channel.*
+- *Note: You can also use ? as a prefix instead of ! to receive responses from Basketbot in private instead of in your current channel.*
 
 ## ⚙️ Coming Soon
-- **!score `team`: Shows the live score for the selected team's current game.
+- **!score `team`**: Shows the live score for the selected team's current game.
 - **!schedule `tomorrow`**: Shows tomorrow's game schedule.
 - **!schedule `team`**: Shows the selected team's upcoming games for the next 2 weeks.
 - **!roster `team`**: Shows the roster for the selected team.
