@@ -1,89 +1,178 @@
 import random
+import requests
+import datetime
+import pytz
+import os
+from dotenv import load_dotenv
 
+# Load the .env file
+load_dotenv()
+
+# API Call
+def call_api(url: str) -> dict:
+    response = requests.get(url)
+    return response.json() if response.status_code == 200 else {}
+
+# Schedule
+def get_schedule(month: str, day: str) -> str:
+    api_key = os.environ["API_KEY"]
+    url = f"https://api.sportradar.com/nba/trial/v8/en/games/2023/{month}/{day}/schedule.json?api_key={api_key}"
+    data = call_api(url)
+
+    schedule = ""
+    for game in data['games']:
+        home_team = game['home']['name']
+        away_team = game['away']['name']
+        scheduled_time = game['scheduled']
+
+        # Parse and format the scheduled_time
+        dt = datetime.datetime.fromisoformat(
+            scheduled_time.rstrip('Z')).replace(tzinfo=pytz.utc)
+        local_tz = pytz.timezone('Canada/Central')
+        local_dt = dt.astimezone(local_tz)
+        formatted_time = local_dt.strftime('%I:%M %p')
+
+        schedule += f"**{home_team}** @ **{away_team}** at {formatted_time}\n"
+
+    return schedule
+
+# Standings
+def get_standings() -> str:
+    api_key = os.environ["API_KEY"]
+    url = f"https://api.sportradar.com/nba/trial/v8/en/seasons/2022/REG/standings.json?api_key={api_key}"
+    standings_data = call_api(url)
+
+    if standings_data and standings_data.get("conferences"):
+        standings_str = ""
+
+        for conference in standings_data["conferences"]:
+            teams = []
+
+            for division in conference["divisions"]:
+                teams.extend(division["teams"])
+
+            teams.sort(key=lambda x: x["calc_rank"]["conf_rank"])
+
+            standings_str += f"**{conference['name']} 2022-2023:**\n"
+            standings_str += "\n".join(
+                [f"{t['calc_rank']['conf_rank']}. {t['name']} ({t['wins']}-{t['losses']})" for t in teams])
+            standings_str += "\n\n"
+
+        return standings_str.strip()
+    else:
+        return "Sorry, no conference data found."
+    
+# Roster
+def get_roster(team: str) -> str:
+    api_key = os.environ["API_KEY_2"]
+    url = f"https://api.sportsdata.io/v3/nba/scores/json/PlayersBasic/{team}?key={api_key}"
+    data = call_api(url)
+
+    if not data:
+        return "Sorry, I couldn't find any roster information for the specified team."
+
+    roster = f"**Roster for {team}:**\n"
+    for player in data:
+        roster += f"{player['Jersey']}. {player['FirstName']} {player['LastName']} ({player['Position']})\n"
+
+    return roster
+
+# Teams
+def get_teams() -> str:
+    api_key = os.environ["API_KEY_2"]
+    url = f"https://api.sportsdata.io/v3/nba/scores/json/teams?key={api_key}"
+    data = call_api(url)
+
+    if not data:
+        return "Sorry, I couldn't find any team information."
+
+    # Group teams by conference
+    conferences = {"Eastern": [], "Western": []}
+    for team in data:
+        conference = team["Conference"]
+        conferences[conference].append(
+            f"{team['Key']}: {team['City']} {team['Name']}")
+
+    # Format the output
+    output = "**NBA Teams:**\n\n"
+    for conference, teams in conferences.items():
+        output += f"**{conference} Conference**\n"
+        for team_info in teams:
+            output += f"{team_info}\n"
+        output += "\n"
+
+    return output
+
+# Responses
 def get_response(message: str) -> str:
-
     p_message = message.lower()
 
-    if p_message == 'hello':
+    if p_message.startswith('!hello'):
         return 'Hey there!'
 
-    if p_message == "!standings west":
-        result = """
-**Western Conference Standings:**
-1. Trail Blazers (10-4)
-2. Nuggets (9-4)
-3. Jazz (10-6)
-4. Suns (8-5)
-5. Mavericks (8-5)
-6. Grizzlies (9-6)
-7. Pelicans (8-6)
-8. Kings (7-6)
-9. Clippers (8-7)
-10. Timberwolves (6-8)
-11. Warriors (6-8)
-12. Thunder (6-8)
-13. Spurs (6-9)
-14. Lakers (3-10)
-15. Rockets (2-12)
-        """
-        return result
+    if p_message.startswith('!schedule'):
+        split_message = p_message.split(' ')
 
-    if p_message == "!standings east":
-        result = """
-**Eastern Conference Standings:**
-1. Celtics (11-3)
-2. Bucks (10-3)
-3. Hawks (9-5)
-4. Cavaliers (8-5)
-5. Wizards (8-6)
-6. Raptors (8-7)
-7. Knicks (7-7)
-8. Pacers (6-6)
-9. 76ers (7-7)
-10. Heat (7-7)
-11. Bulls (6-8)
-12. Nets (6-9)
-13. Magic (4-10)
-14. Hornets (4-11)
-15. Pistons (3-12)
-        """
-        return result
+        if len(split_message) == 1:
+            today = datetime.date.today()
+            month = str(today.month).zfill(2)
+            day = str(today.day).zfill(2)
+        elif (len(split_message) == 2 and split_message[1] == 'tomorrow'):
+            tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+            month = str(tomorrow.month).zfill(2)
+            day = str(tomorrow.day).zfill(2)
+        else:
+            date = split_message[1]
+            month, day = date.split('-')
 
-    if p_message == "!schedule":
-        result = """
-**Schedule for November 16, 2022:**
-6:30 PM CST: Heat @ Raptors
-6:30 PM CST: Celtics @ Hawks
-7:00 PM CST: Cavaliers @ Bucks
-7:00 PM CST: Bulls @ Pelicans
-7:30 PM CST: Rockets @ Mavericks
-9:00 PM CST: Warriors @ Suns
-        """
-        return result
+        return get_schedule(month, day)
 
-    if p_message == '!trivia':
+    if p_message.startswith('!standings'):
+        return get_standings()
+    
+    if p_message.startswith('!roster'):
+        split_message = p_message.split(' ')
+
+        if len(split_message) == 1:
+            return "Please provide a team abbreviation, e.g. `!roster LAL`."
+        else:
+            team = split_message[1].upper()
+        return get_roster(team)
+
+    if p_message.startswith('!teams'):
+        return get_teams()
+        
+    if p_message.startswith('!trivia'):
         x = (random.randint(1, 6))
         match x:
-            case 1: 
+            case 1:
                 return """**Fun Fact #1:** 
 Did you know? Shaquille O\'Neal has only made one 3 pointer in his NBA career!"""
             case 2:
                 return """**Fun Fact #2:** 
 Did you know? Kyle Lowry helped design the 2019 NBA final ring - the biggest and most expensive one to date!"""
             case 3:
-                return """**Fun Fact  # 3:** 
+                return """**Fun Fact  #3:** 
 Did you know? Giannis Antetokounmpo\'s family immigrated illegaly to Greece from Nigeria, where they lived in poverty until Giannis made it to the NBA and brought them with him."""
             case 4:
                 return """**Fun Fact #4:**
 Did you know? LeBron James has only missed the playoffs 4 times in his entire career!"""
             case 5:
-                return """**Fun Fact  # 5:** 
+                return """**Fun Fact  #5:** 
 Did you know? Michael Jordan\'s shoe deal with Nike for Jordans is one of the most successful partnerships of all time!"""
             case 6:
                 return """**Fun Fact #6:** 
 Did you know? Steph Curry\'s first name is actually Wardell. His middle name is Stephen!"""
 
-    if p_message == '!help':
-        return '`This is a help message that you can modify.`'
-
-    return 'I don\'t understand.'
+# Help
+    if p_message.startswith('!help'):
+        return '''**Commands:**
+`!hello` - Say hello to the bot
+`!schedule` - Get the schedule for today
+`!schedule tomorrow` - Get the schedule for tomorrow
+`!schedule [MM-DD]` - Get the schedule for a specific date
+`!standings` - Get the current standings for the NBA
+`!roster [team]` - Get the roster for a specific team, by team abbreviation (i.e. LAL)
+`!teams` - Get a list of all NBA teams and their abbreviations
+`!trivia` - Get a fun fact about the NBA
+`!help` - Get a list of commands'''
