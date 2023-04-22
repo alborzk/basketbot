@@ -24,7 +24,7 @@ To get started, simply [invite](https://discord.com/api/oauth2/authorize?client_
 - **!schedule `team`**: Shows the selected team's upcoming games for the next 2 weeks.
 - **!player `player`**: Shows the team and season stats for the selected player.
 - **!champions `x`**: Shows the NBA champions for the past `x` years.
-- Live standings/schedules
+- Integration with Discord / commands
 - More trivia!
 
 ## 📝 Authors
