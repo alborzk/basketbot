@@ -3,7 +3,7 @@
 </p>
 
 ## 🔨 About
-Basketbot is a simple Discord bot that allows you to quickly access NBA standings, schedules, live scores, and fun facts easily within your Discord server!
+Basketbot is a fun Discord bot that allows you to quickly access NBA standings, rosters, schedules, and more easily within your Discord server!
 
 ## 👟 Getting Started
 
