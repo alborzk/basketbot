@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: your-bot-name
+    env: python
+    pythonVersion: '3.10.9'
+    buildCommand: 'pip install -r requirements.txt'
+    startCommand: 'python main.py'
