@@ -1,4 +1,6 @@
-<h1 align="center"> Basketbot</h1>
+<p align="center"> 
+  <img src="readme/logo.png" alt="Logo">
+</p>
 
 ## 🔨 About
 Basketbot is a simple Discord bot that allows you to quickly access NBA standings, schedules, live scores, and fun facts easily within your Discord server!
