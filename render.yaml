@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: your-bot-name
+    name: Basketbot
     env: python
     pythonVersion: '3.10.9'
     buildCommand: 'pip install -r requirements.txt'
